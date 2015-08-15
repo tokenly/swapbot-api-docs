@@ -1,0 +1,620 @@
+swagger: '2.0'
+
+info:
+  version: "0.0.14"
+  title: Swapbot Public API
+  description: |
+    All API calls begin with http://swapbot.tokenly.com/api/v1/public.
+    For more information about Tokenly, visit http://tokenly.com.
+
+host: swapbot.tokenly.com
+basePath: /api/v1/public
+
+tags:
+  - name: bot
+    description: Swapbot API Calls
+  - name: swap
+    description: Swap API Calls
+  - name: events
+    description: Swap and Bot Event API Calls
+
+paths:
+  # ----------------------------------------------------------------------------
+  /bot/{botId}:
+    get:
+      summary: Load a bot by ID
+      tags: [bot]
+      description: |
+        Returns a single `Bot` object.
+      parameters:
+        -
+          name: botId
+          in: path
+          description: Swapbot UUID
+          required: true
+          type: string
+          format: uuid
+
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Bot'
+        404:
+          description: Bot not found
+
+  # ----------------------------------------------------------------------------
+  /bots:
+    get:
+      summary: Search or list all bots
+      tags: [bot]
+
+      description: |
+        Returns an array of `bots`.
+
+      parameters:
+        -
+          name: name
+          in: query
+          description: filter by partial bot name match
+          type: string
+        -
+          name: description
+          in: query
+          description: filter by partial bot description match
+          type: string
+        -
+          name: username
+          in: query
+          description: filter by partial username match
+          type: string
+        -
+          name: inToken
+          in: query
+          description: filter by exact inToken match
+          type: string
+        -
+          name: outToken
+          in: query
+          description: filter by exact outToken match
+          type: string
+        -
+          name: state
+          in: query
+          description: filter by bot state
+          type: string
+          enum:
+            - brandnew
+            - lowfuel
+            - active
+            - inactive
+            - unpaid
+        -
+          name: sort
+          in: query
+          description: sort the bot by a field.  Allowed sort fields are `name` and `created_at`
+          type: string
+
+      responses:
+        200:
+          description: An array of bots
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Bot'
+
+  # ----------------------------------------------------------------------------
+  /botevents/{botId}:
+    get:
+      summary: Lists an array of all bot events
+      tags: [bot,events]
+
+      description: |
+        Returns an array of `botevent`s for this bot.
+
+      parameters:
+        -
+          name: botId
+          in: path
+          description: Swapbot UUID
+          required: true
+          type: string
+          format: uuid
+
+
+      responses:
+        200:
+          description: An array of bot events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SwapbotEvent'
+
+  # ----------------------------------------------------------------------------
+  /boteventstream/{botId}:
+    get:
+      summary: Lists an array of bot events that are of interest to a user using the swap
+      tags: [bot,events]
+
+      description: |
+        Returns an array of `botevent`s for this bot.
+
+      parameters:
+        -
+          name: botId
+          in: path
+          description: Swapbot UUID
+          required: true
+          type: string
+          format: uuid
+
+
+      responses:
+        200:
+          description: An array of bot events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SwapbotEvent'
+
+  # ----------------------------------------------------------------------------
+  /swapevents/{botId}:
+    get:
+      summary: Lists an array of all swap events for this bot
+      tags: [swap,events]
+
+      description: |
+        Returns an array of `botevent`s for this bot.
+
+      parameters:
+        -
+          name: botId
+          in: path
+          description: Swapbot UUID
+          required: true
+          type: string
+          format: uuid
+
+
+      responses:
+        200:
+          description: An array of swap events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SwapbotEvent'
+
+
+  # ----------------------------------------------------------------------------
+  /availableswaps:
+    get:
+      summary: Lists available swaps
+      tags: [swap]
+
+      description: |
+        Returns an array of available `swaps`.  Each swap includes a reference to the `bot` that is offering it.
+
+      parameters:
+        -
+          name: inToken
+          in: query
+          description: filter by exact inToken match
+          type: string
+        -
+          name: outToken
+          in: query
+          description: filter by exact outToken match
+          type: string
+        -
+          name: sort
+          in: query
+          description: sort the swaps by a field.  Allowed sort fields are `inToken`, `outToken` and `cost`
+          type: string
+
+      responses:
+        200:
+          description: An array of swaps with bots
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AvailableSwap'
+
+  # ----------------------------------------------------------------------------
+  /swaps/{botId}:
+    get:
+      summary: Lists all swaps for this bot
+      tags: [swap]
+
+      description: |
+        Returns an array of `swap`s for this bot.
+
+      parameters:
+        -
+          name: botId
+          in: path
+          description: Swapbot UUID
+          required: true
+          type: string
+          format: uuid
+
+
+      responses:
+        200:
+          description: An array of swap
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Swap'
+
+# ##############################################################################
+# ##############################################################################
+
+definitions:
+# ----------------------------------------------------------------------------
+  Bot:
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: The bot's uuid
+
+      name:
+        type: string
+        description: The bot's name
+
+      address:
+        type: string
+        description: Address
+
+      username:
+        type: string
+        description: The username operating this bot
+
+      description:
+        type: string
+        description: Bot description in markdown format
+        format: markdown
+
+      descriptionHtml:
+        type: string
+        description: Bot description in HTML format
+        format: html
+
+      backgroundImageDetails:
+        type: object
+        description: Background image details
+        $ref: '#/definitions/ImageDetails'
+
+      logoImageDetails:
+        type: object
+        description: Logo image details
+        $ref: '#/definitions/ImageDetails'
+
+      backgroundOverlaySettings:
+        type: string
+        description: Background overlay settings
+
+      swaps:
+        type: string
+        description: A list of available swaps for this bot
+
+      balances:
+        type: string
+        description: Current available balances held by the bot's public address
+
+      allBalancesByType:
+        type: string
+        description: All balances held by the bot including unconfirmed and sending funds
+
+      returnFee:
+        type: string
+        description: The BTC fee paid by the bot when vending swaps
+
+      state:
+        type: string
+        description: The current bot state
+        enum:
+          - brandnew
+          - lowfuel
+          - active
+          - inactive
+          - unpaid
+
+      confirmationsRequired:
+        type: string
+        description: Number of confirmations required before vending tokens or BTC
+
+      refundConfig:
+        type: object
+        description: Refund configuration
+        $ref: '#/definitions/RefundConfig'
+
+      createdAt:
+        type: string
+        format: date-time
+        description: Creation date
+
+      hash:
+        type: string
+        description: A unique hash of the bot and settings
+
+
+# ----------------------------------------------------------------------------
+  BotSummary:
+    description: A summary of a Swapbot
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: The bot's uuid
+
+      name:
+        type: string
+        description: The bot's name
+
+      address:
+        type: string
+        description: Address
+
+      username:
+        type: string
+        description: The username operating this bot
+
+      botUrl:
+        type: string
+        description: The full public URL of the Swapbot
+        format: url
+
+      robohashImage:
+        type: string
+        description: The full URL of the Swapbot's robohash image
+        format: url
+
+      backgroundImage:
+        type: string
+        description: The full URL of the Swapbot's background image (if it exists)
+        format: url
+
+      logoImage:
+        type: string
+        description: The full URL of the Swapbot's logo image (if it exists)
+        format: url
+
+      descriptionHtml:
+        type: string
+        description: Bot description in HTML format
+        format: html
+
+      swaps:
+        type: string
+        description: A list of available swaps for this bot
+
+      balances:
+        type: string
+        description: Current available balances held by the bot's public address
+
+      returnFee:
+        type: string
+        description: The BTC fee paid by the bot when vending swaps
+
+      state:
+        type: string
+        description: The current bot state
+        enum:
+          - brandnew
+          - lowfuel
+          - active
+          - inactive
+          - unpaid
+
+      createdAt:
+        type: string
+        format: date-time
+        description: Creation date
+
+
+# ----------------------------------------------------------------------------
+  RefundConfig:
+    properties:
+      refundAfterBlocks:
+        description: For out of stock swaps, a refund is processed after this many blocks
+        type: integer
+        minimum: 3
+        maximum: 72
+
+# ----------------------------------------------------------------------------
+  ImageDetails:
+    properties:
+      id:
+        description: Image UUID
+        type: string
+      fullUrl:
+        description: Full size image URL
+        type: string
+        format: url
+      mediumUrl:
+        description: Medium size image URL
+        type: string
+        format: url
+      thumbUrl:
+        description: Thumbnail size image URL
+        type: string
+        format: url
+      originalUrl:
+        description: Original unsized image URL
+        type: string
+        format: url
+      contentType:
+        description: Image mime type
+        type: string
+      size:
+        description: Image size in bytes
+        type: integer
+      originalFilename:
+        description: Original uploaded filename
+        type: string
+      updatedAt:
+        description: The last updated date of the image
+        type: string
+        format: date-time
+
+# ----------------------------------------------------------------------------
+  Swap:
+    description: A full swap configuration
+    properties:
+
+      id:
+        type: string
+        description: The swap UUID
+      txid:
+        type: string
+        description: The originating received bitcoin transaction ID
+      state:
+        type: string
+        description: The swap state
+        enum:
+          - brandnew
+          - outofstock
+          - ready
+          - confirming
+          - sent
+          - refunded
+          - complete
+          - error
+
+      receipt:
+        type: object
+        description: The swap receipt details
+        $ref: '#/definitions/SwapReceipt'
+
+      createdAt:
+        type: string
+        format: date-time
+        description: The creation date of the swap
+      updatedAt:
+        type: string
+        format: date-time
+        description: The last updated date of the swap
+      completedAt:
+        type: string
+        format: date-time
+        description: The completion date of the swap
+
+# ----------------------------------------------------------------------------
+  SwapReceipt:
+    description: A full swap configuration
+    properties:
+
+
+      quantityIn:
+        type: string
+        description: Quantity in
+      assetIn:
+        type: string
+        description: Asset in
+
+      quantityOut:
+        type: string
+        description: Quantity out
+      assetOut:
+        type: string
+        description: Asset out
+
+      type:
+        type: string
+        description: The swap type
+        enum:
+          - swap
+          - refund
+
+      destination:
+        type: string
+        description: The destination bitcoin address
+
+      txidIn:
+        type: string
+        description: The originating transaction id
+      txidOut:
+        type: string
+        description: The vended swap transaction id
+
+      confirmations:
+        type: string
+        description: The number of confirmations received before vending
+      confirmationsOut:
+        type: string
+        description: The number of confirmations for the outgoing transaction before this swap was marked as complete
+
+      timestamp:
+        type: integer
+        description: The last updated timestamp for this swap
+
+      completedAt:
+        type: integer
+        description: The completion timestamp of the swap
+
+# ----------------------------------------------------------------------------
+  AvailableSwap:
+    properties:
+      bot:
+        type: object
+        description: A summary of the bot hosting this swap
+        $ref: '#/definitions/BotSummary'
+      swap:
+        type: object
+        description: A summary of this swap including the rate and cost
+        $ref: '#/definitions/SwapSummary'
+
+# ----------------------------------------------------------------------------
+  SwapSummary:
+    description: A normalized swap description
+    properties:
+      in:
+        type: string
+        description: The token to be deposited
+      out:
+        type: string
+        description: The token to be vended
+      rate:
+        type: number
+        format: float
+        description: The rate at which the `out` token is sent for each 1 `in` token
+      cost:
+        type: number
+        format: float
+        description: The number of `in` tokens to purchase 1 `out` token
+
+
+# ----------------------------------------------------------------------------
+  SwapbotEvent:
+    description: A swapbot event
+    properties:
+      id:
+        type: string
+        description: Event UUID
+      level:
+        type: integer
+        description: The level of this event.  `100` is DEBUG, `200` is INFO, `300` is WARNING and `400` is ERROR.
+        enum:
+          - 100
+          - 200
+          - 300
+          - 400
+      event:
+        type: object
+        description: The details of this event.  Varies for each event type.
+      createdAt:
+        type: string
+        format: date-time
+        description: Creation date
+      serial:
+        type: integer
+        description: A sortable serial number for this event
+      swapUuid:
+        type: string
+        description: If this event is related to a swap then this field contains that swap UUID
+      message:
+        type: string
+        description: A human readable description of this event
+
+
